@@ -1,7 +1,5 @@
 package iceblue
 
-import "fmt"
-
-func helloWould() {
-	fmt.Println("Hello, world!")
+func helloWould() string {
+	return "Hello, would!"
 }
