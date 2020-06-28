@@ -1,5 +1,8 @@
-package iceblue
+package main
 
-func helloWould() string {
-	return "Hello, would!"
+func main() {
+	result := store("sampleKey", "sampleValue")
+	if result < 0 {
+		panic("failed store")
+	}
 }

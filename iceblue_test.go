@@ -1,11 +1,12 @@
-package iceblue
+package main
 
 import "testing"
 
 func TestHelloIceBlud(t *testing.T) {
-	expected := "Hello, would!"
-	actual := helloWould()
-	if actual != expected {
-		t.Errorf("Expect - %v, but got - %v", expected, actual)
+	testKey := "internal"
+	testValue := "Hello, Would!"
+	actual := store(testKey, testValue)
+	if actual < 0 {
+		t.Errorf("Expect - %d, but got - %d", 0, actual)
 	}
 }
