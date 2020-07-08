@@ -31,6 +31,16 @@ func get(key string) (string, int) {
 	return value, -1
 }
 
+func update(key string, value string) int {
+	_, ok := table[key]
+
+	if ok {
+		table[key] = value
+		return 0
+	}
+	return -1
+}
+
 func initializeStore() {
 	table = make(map[string]string)
 
