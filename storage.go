@@ -13,9 +13,11 @@ var table map[string]item
 var mutex sync.Mutex
 
 type item struct {
-	key   string
-	value string
-	time  time.Time
+	key    string
+	value  string
+	hvalue uint32
+	time   time.Time
+	next   *item
 }
 
 func store(key string, value string) int {
@@ -71,7 +73,7 @@ func update(key string, value string) int {
 }
 
 func initializeStore() {
-	initializeAssoc(1024)
+	initializeAssoc(1024, SAMPLE)
 	table = make(map[string]item)
 
 	fmt.Printf("initialize storage module.\n")

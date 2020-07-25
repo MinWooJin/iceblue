@@ -4,16 +4,27 @@ import (
 	"fmt"
 )
 
+// HASH functions
+const (
+	SAMPLE = iota
+)
+
 type assocST struct {
 	hashtable     []*item
 	hashtableSize uint64
+	hashFunction  int
 }
 
 var assoc assocST
 
-func hash(str string) uint32 {
+func hash(str string, hashFunction int) uint32 {
 	var hvalue uint32
 	/* TODO :: make hash function */
+	switch hashFunction {
+	case SAMPLE:
+		hvalue = 0
+		break
+	}
 	return hvalue
 }
 
@@ -39,9 +50,10 @@ func expandTable() bool {
 	return true
 }
 
-func initializeAssoc(hashtableSize uint64) {
+func initializeAssoc(hashtableSize uint64, hashFunction int) {
 	assoc.hashtableSize = hashtableSize
 	assoc.hashtable = make([]*item, assoc.hashtableSize)
+	assoc.hashFunction = hashFunction
 
 	fmt.Printf("initialize assoc module.\n")
 }
