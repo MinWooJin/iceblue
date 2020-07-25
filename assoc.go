@@ -11,7 +11,7 @@ const (
 
 type assocST struct {
 	hashtable     []*item
-	hashtableSize uint64
+	hashtableSize uint32
 	hashFunction  int
 }
 
@@ -19,10 +19,11 @@ var assoc assocST
 
 func hash(str string, hashFunction int) uint32 {
 	var hvalue uint32
+	strlength := uint32(len(str))
 	/* TODO :: make hash function */
 	switch hashFunction {
 	case SAMPLE:
-		hvalue = 0
+		hvalue = strlength % assoc.hashtableSize
 		break
 	}
 	return hvalue
@@ -50,7 +51,7 @@ func expandTable() bool {
 	return true
 }
 
-func initializeAssoc(hashtableSize uint64, hashFunction int) {
+func initializeAssoc(hashtableSize uint32, hashFunction int) {
 	assoc.hashtableSize = hashtableSize
 	assoc.hashtable = make([]*item, assoc.hashtableSize)
 	assoc.hashFunction = hashFunction
