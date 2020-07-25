@@ -35,6 +35,7 @@ func store(key string, value string) int {
 
 	fmt.Printf("[DEBUG] stored. key=%s, value=%s\n", key, value)
 	mutex.Unlock()
+
 	return 0
 }
 
@@ -70,23 +71,8 @@ func update(key string, value string) int {
 }
 
 func initializeStore() {
+	initializeAssoc(1024)
 	table = make(map[string]item)
 
 	fmt.Printf("initialize storage module.\n")
 }
-
-/* remain hash table structure
-type assocST struct {
-	hashtable     []*item
-	hashtableSize uint64
-}
-
-var assoc assocST
-
-func initializeStoreV2(hashtableSize uint64) {
-	assoc.hashtableSize = hashtableSize
-	assoc.hashtable = make([]*item, assoc.hashtableSize)
-
-	fmt.Printf("initialize storage module.\n")
-}
-*/
