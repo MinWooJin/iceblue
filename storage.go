@@ -9,15 +9,18 @@ import (
 /* TODO : change print message to logging system */
 /* TODO : change storage data structure map to hash table */
 
-var table map[string]item
+var table map[string]Item
 var mutex sync.Mutex
 
-type item struct {
+// Item is struct of iceblue data
+type Item struct {
 	key    string
+	keyLen uint32
 	value  string
+	valLen uint32
 	hvalue uint32
 	time   time.Time
-	next   *item
+	next   *Item
 }
 
 func store(key string, value string) int {
@@ -29,7 +32,7 @@ func store(key string, value string) int {
 		return -1
 	}
 
-	var storeItem item
+	var storeItem Item
 	storeItem.key = key
 	storeItem.value = value
 	storeItem.time = time.Now()
@@ -73,8 +76,8 @@ func update(key string, value string) int {
 }
 
 func initializeStore() {
-	initializeAssoc(1024, SAMPLE)
-	table = make(map[string]item)
+	initializeAssoc(uint32(1024), SAMPLE)
+	table = make(map[string]Item)
 
 	fmt.Printf("initialize storage module.\n")
 }
