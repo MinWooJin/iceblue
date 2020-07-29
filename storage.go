@@ -9,7 +9,6 @@ import (
 /* TODO : change print message to logging system */
 /* TODO : change storage data structure map to hash table */
 
-var table map[string]Item
 var mutex sync.Mutex
 
 // Item is struct of iceblue data
@@ -25,23 +24,29 @@ type Item struct {
 
 func store(key string, value string) int {
 	mutex.Lock()
-	_, ok := table[key]
-	if ok {
+	hashVal := hash(key)
+	if assocGet(hashVal, key) != nil {
 		fmt.Printf("Already exist key(%s)\n", key)
 		mutex.Unlock()
 		return -1
 	}
 
-	var storeItem Item
+	storeItem := new(Item)
 	storeItem.key = key
+	storeItem.keyLen = uint32(len(key))
 	storeItem.value = value
+	storeItem.valLen = uint32(len(value))
+	storeItem.hvalue = hashVal
 	storeItem.time = time.Now()
-	table[key] = storeItem
 
+	ret := assocInsert(storeItem)
+	if ret == -1 {
+		fmt.Printf("Failed insert key(%s)\n", key)
+	}
 	fmt.Printf("[DEBUG] stored. key=%s, value=%s\n", key, value)
 	mutex.Unlock()
 
-	return 0
+	return ret
 }
 
 func get(key string) (string, int) {
@@ -49,9 +54,10 @@ func get(key string) (string, int) {
 	result := -1
 
 	mutex.Lock()
-	item, ok := table[key]
-	fmt.Printf("[DEBUG] get. key=%s, exist=%v, value=%s\n", key, ok, item.value)
-	if ok {
+	item := assocGet(hash(key), key)
+	fmt.Printf("[DEBUG] try get. key=%s\n", key)
+	if item != nil {
+		fmt.Printf("[DEBUG] get. key=%s, value=%s\n", key, item.value)
 		value = item.value
 		result = 0
 	}
@@ -60,14 +66,19 @@ func get(key string) (string, int) {
 	return value, result
 }
 
+func delete(key string) {
+	mutex.Lock()
+	assocDelete(hash(key), key)
+	mutex.Unlock()
+}
+
 func update(key string, value string) int {
 	result := -1
 
 	mutex.Lock()
-	item, ok := table[key]
-	if ok {
+	item := assocGet(hash(key), key)
+	if item != nil {
 		item.value = value
-		table[key] = item
 		result = 0
 	}
 	mutex.Unlock()
@@ -77,7 +88,6 @@ func update(key string, value string) int {
 
 func initializeStore() {
 	initializeAssoc(uint32(1024), SAMPLE)
-	table = make(map[string]Item)
 
 	fmt.Printf("initialize storage module.\n")
 }

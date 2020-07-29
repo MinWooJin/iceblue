@@ -18,9 +18,10 @@ type assocST struct {
 
 var assoc assocST
 
-func hash(str string, hashFunction int) uint32 {
+func hash(str string) uint32 {
 	var hvalue uint32
 	strlength := uint32(len(str))
+	hashFunction := assoc.hashFunction
 	/* TODO :: make hash function */
 	switch hashFunction {
 	case SAMPLE:
@@ -46,9 +47,10 @@ func assocGet(hvalue uint32, key string) *Item {
 	return it
 }
 
-func assocInsert(hvalue uint32, it *Item) bool {
+func assocInsert(it *Item) int {
+	hvalue := it.hvalue
 	if assocGet(hvalue, it.key) != nil {
-		return false
+		return -1
 	}
 
 	bucketIdx := hvalue % assoc.hashtableSize
@@ -59,15 +61,26 @@ func assocInsert(hvalue uint32, it *Item) bool {
 	if assoc.totalItems >= (assoc.hashtableSize*3)/2 {
 		assocExpand()
 	}
-	return true
+	return 0
 }
 
-func assocDelete(hvalue uint32, key string) bool {
-	it := assocGet(hvalue, key)
-	if it == nil {
-		return false
+func assocDelete(hvalue uint32, key string) {
+	var prev *Item
+	bucketIdx := hvalue % assoc.hashtableSize
+	it := assoc.hashtable[bucketIdx]
+	for it != nil {
+		if it.keyLen == uint32(len(key)) && it.key == key {
+			if prev != nil {
+				prev.next = it.next
+			} else {
+				assoc.hashtable[bucketIdx] = it.next
+			}
+			assoc.totalItems--
+			it.next = nil
+		}
+		prev = it
+		it = it.next
 	}
-	return true
 }
 
 func checkExpandTable() bool {
