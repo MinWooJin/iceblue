@@ -10,10 +10,12 @@ const (
 )
 
 type assocST struct {
-	hashtable     []*Item
-	hashtableSize uint32
-	hashFunction  int
-	totalItems    uint32
+	hashtable        []*Item
+	oldHashtable     []*Item
+	hashtableSize    uint32
+	oldHashtableSize uint32
+	hashFunction     int
+	totalItems       uint32
 }
 
 var assoc assocST
@@ -29,10 +31,6 @@ func hash(str string) uint32 {
 		break
 	}
 	return hvalue
-}
-
-func assocExpand() {
-	/* do expand */
 }
 
 func assocGet(hvalue uint32, key string) *Item {
@@ -59,7 +57,7 @@ func assocInsert(it *Item) int {
 
 	assoc.totalItems++
 	if assoc.totalItems >= (assoc.hashtableSize*3)/2 {
-		assocExpand()
+		expandTable()
 	}
 	return 0
 }
@@ -88,13 +86,38 @@ func checkExpandTable() bool {
 }
 
 func expandTable() bool {
+	fmt.Printf("Start hashtable expand. [size=%d]\n", assoc.hashtableSize)
+	/* TODO: change algorithm to one bucket move */
+	nextHashtableSize := assoc.hashtableSize * 2
+	tempTable := make([]*Item, nextHashtableSize)
+	if tempTable == nil {
+		return false
+	}
+
+	var bucket uint32
+	var nextItem *Item
+	for bucket = 0; bucket < assoc.hashtableSize; bucket++ {
+		it := assoc.hashtable[bucket]
+		for it != nil {
+			nextItem = it.next
+			nextBucket := it.hvalue % nextHashtableSize
+			it.next = tempTable[nextBucket]
+			tempTable[nextBucket] = it
+			it = nextItem
+		}
+		assoc.hashtable[bucket] = nil
+	}
+	assoc.hashtable = tempTable
+	assoc.hashtableSize = nextHashtableSize
+	fmt.Printf("End hashtable expand. [size=%d]\n", assoc.hashtableSize)
 	return true
 }
 
 func initializeAssoc(hashtableSize uint32, hashFunction int) {
 	assoc.hashtableSize = hashtableSize
+	/* TODO: add failure handling */
 	assoc.hashtable = make([]*Item, assoc.hashtableSize)
 	assoc.hashFunction = hashFunction
 
-	fmt.Printf("initialize assoc module.\n")
+	fmt.Printf("initialize assoc module.[size=%d]\n", assoc.hashtableSize)
 }
