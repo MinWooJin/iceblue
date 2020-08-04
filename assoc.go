@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 )
 
 // HASH functions
@@ -14,8 +15,10 @@ type assocST struct {
 	oldHashtable     []*Item
 	hashtableSize    uint32
 	oldHashtableSize uint32
+	expandingBucket  uint32
 	hashFunction     int
 	totalItems       uint32
+	expanding        bool
 }
 
 var assoc assocST
@@ -34,8 +37,17 @@ func hash(str string) uint32 {
 }
 
 func assocGet(hvalue uint32, key string) *Item {
-	bucketIdx := hvalue % assoc.hashtableSize
-	it := assoc.hashtable[bucketIdx]
+	var bucketIdx uint32
+	var it *Item
+
+	if expandBucket(hvalue) {
+		bucketIdx = hvalue % assoc.oldHashtableSize
+		it = assoc.oldHashtable[bucketIdx]
+	} else {
+		bucketIdx = hvalue % assoc.hashtableSize
+		it = assoc.hashtable[bucketIdx]
+	}
+
 	for it != nil {
 		if it.keyLen == uint32(len(key)) && it.key == key {
 			break
@@ -51,27 +63,50 @@ func assocInsert(it *Item) int {
 		return -1
 	}
 
-	bucketIdx := hvalue % assoc.hashtableSize
-	it.next = assoc.hashtable[bucketIdx]
-	assoc.hashtable[bucketIdx] = it
+	var bucketIdx uint32
+	if expandBucket(hvalue) {
+		bucketIdx = hvalue % assoc.oldHashtableSize
+		it.next = assoc.oldHashtable[bucketIdx]
+		assoc.oldHashtable[bucketIdx] = it
+	} else {
+		bucketIdx = hvalue % assoc.hashtableSize
+		it.next = assoc.hashtable[bucketIdx]
+		assoc.hashtable[bucketIdx] = it
+	}
 
 	assoc.totalItems++
-	if assoc.totalItems >= (assoc.hashtableSize*3)/2 {
-		expandTable()
+	if !assoc.expanding && assoc.totalItems >= (assoc.hashtableSize*3)/2 {
+		assoc.expanding = true
+		go expandTable()
 	}
 	return 0
 }
 
 func assocDelete(hvalue uint32, key string) {
 	var prev *Item
-	bucketIdx := hvalue % assoc.hashtableSize
-	it := assoc.hashtable[bucketIdx]
+	var it *Item
+	var bucketIdx uint32
+	var oldHashtableDelete bool
+
+	if expandBucket(hvalue) {
+		bucketIdx = hvalue % assoc.oldHashtableSize
+		it = assoc.oldHashtable[bucketIdx]
+		oldHashtableDelete = true
+	} else {
+		bucketIdx = hvalue % assoc.hashtableSize
+		it = assoc.hashtable[bucketIdx]
+	}
+
 	for it != nil {
 		if it.keyLen == uint32(len(key)) && it.key == key {
 			if prev != nil {
 				prev.next = it.next
 			} else {
-				assoc.hashtable[bucketIdx] = it.next
+				if oldHashtableDelete {
+					assoc.oldHashtable[bucketIdx] = it.next
+				} else {
+					assoc.hashtable[bucketIdx] = it.next
+				}
 			}
 			assoc.totalItems--
 			it.next = nil
@@ -81,36 +116,52 @@ func assocDelete(hvalue uint32, key string) {
 	}
 }
 
-func checkExpandTable() bool {
+func expandBucket(hvalue uint32) bool {
+	if assoc.oldHashtable != nil {
+		bucket := hvalue % assoc.oldHashtableSize
+		if bucket >= assoc.expandingBucket {
+			return true
+		}
+	}
 	return false
 }
 
-func expandTable() bool {
+func expandTable() {
+	/* TODO: change to parallel go routine */
+
+	runtime.GOMAXPROCS(4)
 	fmt.Printf("Start hashtable expand. [size=%d]\n", assoc.hashtableSize)
-	/* TODO: change algorithm to one bucket move */
-	nextHashtableSize := assoc.hashtableSize * 2
-	tempTable := make([]*Item, nextHashtableSize)
-	if tempTable == nil {
-		return false
-	}
+	mutex.Lock()
+	assoc.oldHashtableSize = assoc.hashtableSize
+	assoc.hashtableSize = assoc.hashtableSize * 2
+	assoc.oldHashtable = assoc.hashtable
+	assoc.hashtable = make([]*Item, assoc.hashtableSize)
+	assoc.expandingBucket = 0
+	mutex.Unlock()
 
 	var bucket uint32
 	var nextItem *Item
-	for bucket = 0; bucket < assoc.hashtableSize; bucket++ {
-		it := assoc.hashtable[bucket]
+	for bucket = 0; bucket < assoc.oldHashtableSize; bucket++ {
+		mutex.Lock()
+		it := assoc.oldHashtable[bucket]
 		for it != nil {
 			nextItem = it.next
-			nextBucket := it.hvalue % nextHashtableSize
-			it.next = tempTable[nextBucket]
-			tempTable[nextBucket] = it
+			nextBucket := it.hvalue % assoc.hashtableSize
+			it.next = assoc.hashtable[nextBucket]
+			assoc.hashtable[nextBucket] = it
 			it = nextItem
 		}
-		assoc.hashtable[bucket] = nil
+		assoc.oldHashtable[bucket] = nil
+		assoc.expandingBucket++
+		if bucket == assoc.oldHashtableSize-1 {
+			assoc.oldHashtable = nil
+			assoc.oldHashtableSize = 0
+			assoc.expandingBucket = 0
+			assoc.expanding = false
+		}
+		mutex.Unlock()
 	}
-	assoc.hashtable = tempTable
-	assoc.hashtableSize = nextHashtableSize
 	fmt.Printf("End hashtable expand. [size=%d]\n", assoc.hashtableSize)
-	return true
 }
 
 func initializeAssoc(hashtableSize uint32, hashFunction int) {
