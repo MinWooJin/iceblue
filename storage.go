@@ -55,14 +55,16 @@ func get(key string) (string, int) {
 
 	mutex.Lock()
 	item := assocGet(hash(key), key)
-	fmt.Printf("[DEBUG] try get. key=%s\n", key)
 	if item != nil {
-		fmt.Printf("[DEBUG] get. key=%s, value=%s\n", key, item.value)
 		value = item.value
 		result = 0
 	}
 	mutex.Unlock()
-
+	if result == 0 {
+		fmt.Printf("[DEBUG] get. key=%s, value=%s\n", key, item.value)
+	} else {
+		fmt.Printf("[DEBUG] get. key=%s\n", key)
+	}
 	return value, result
 }
 
@@ -70,6 +72,7 @@ func delete(key string) {
 	mutex.Lock()
 	assocDelete(hash(key), key)
 	mutex.Unlock()
+	fmt.Printf("[DEBUG] delete. key=%s\n", key)
 }
 
 func update(key string, value string) int {
@@ -82,12 +85,16 @@ func update(key string, value string) int {
 		result = 0
 	}
 	mutex.Unlock()
-
+	if result == 0 {
+		fmt.Printf("[DEBUG] update. key=%s, value=%s\n", key, item.value)
+	} else {
+		fmt.Printf("[DEBUG] update. key=%s\n", key)
+	}
 	return result
 }
 
 func initializeStore() {
-	initializeAssoc(uint32(1), SAMPLE)
+	initializeAssoc(uint32(128), SAMPLE)
 
 	fmt.Printf("initialize storage module.\n")
 }
