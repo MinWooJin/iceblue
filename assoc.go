@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 )
 
 // HASH functions
@@ -133,7 +133,7 @@ func expandTable() {
 	maxExpandCount := 4
 
 	if assoc.oldHashtable == nil {
-		fmt.Printf("Start hashtable expand. [size=%d]\n", assoc.hashtableSize)
+		log.Printf("Start hashtable expand. [size=%d]\n", assoc.hashtableSize)
 		assoc.oldHashtableSize = assoc.hashtableSize
 		assoc.hashtableSize = assoc.hashtableSize * 2
 		assoc.oldHashtable = assoc.hashtable
@@ -166,7 +166,7 @@ func expandTable() {
 		assoc.oldHashtableSize = 0
 		assoc.expandingBucket = 0
 		assoc.expanding = false
-		fmt.Printf("End hashtable expand. [size=%d]\n", assoc.hashtableSize)
+		log.Printf("End hashtable expand. [size=%d]\n", assoc.hashtableSize)
 	}
 }
 
@@ -176,5 +176,28 @@ func initializeAssoc(hashtableSize uint32, hashFunction int) {
 	assoc.hashtable = make([]*Item, assoc.hashtableSize)
 	assoc.hashFunction = hashFunction
 
-	fmt.Printf("initialize assoc module.[size=%d]\n", assoc.hashtableSize)
+	log.Printf("initialize assoc module.[size=%d]\n", assoc.hashtableSize)
+}
+
+func allItemReleaseInBucket(startBucket uint32, endBucket uint32) {
+	var bucket uint32
+	for bucket = startBucket; bucket < endBucket; bucket++ {
+		for it := assoc.hashtable[bucket]; it != nil; {
+			temp := it
+			it = it.next
+			temp.next = nil
+		}
+		assoc.hashtable[bucket] = nil
+	}
+}
+
+func destroyAssoc() {
+	if assoc.expanding {
+		allItemReleaseInBucket(assoc.expandingBucket, assoc.oldHashtableSize)
+		allItemReleaseInBucket(0, assoc.hashtableSize)
+	} else {
+		allItemReleaseInBucket(0, assoc.hashtableSize)
+	}
+
+	log.Printf("destroy assoc module.\n")
 }

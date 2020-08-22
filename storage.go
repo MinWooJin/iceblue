@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 )
@@ -41,9 +42,9 @@ func store(key string, value string) int {
 
 	ret := assocInsert(storeItem)
 	if ret == -1 {
-		fmt.Printf("Failed insert key(%s)\n", key)
+		log.Printf("Failed insert key(%s)\n", key)
 	}
-	fmt.Printf("[DEBUG] stored. key=%s, value=%s\n", key, value)
+	log.Printf("[DEBUG] stored. key=%s, value=%s\n", key, value)
 	mutex.Unlock()
 
 	return ret
@@ -61,9 +62,9 @@ func get(key string) (string, int) {
 	}
 	mutex.Unlock()
 	if result == 0 {
-		fmt.Printf("[DEBUG] get. key=%s, value=%s\n", key, item.value)
+		log.Printf("[DEBUG] get. key=%s, value=%s\n", key, item.value)
 	} else {
-		fmt.Printf("[DEBUG] get. key=%s\n", key)
+		log.Printf("[DEBUG] get. key=%s\n", key)
 	}
 	return value, result
 }
@@ -72,7 +73,7 @@ func delete(key string) {
 	mutex.Lock()
 	assocDelete(hash(key), key)
 	mutex.Unlock()
-	fmt.Printf("[DEBUG] delete. key=%s\n", key)
+	log.Printf("[DEBUG] delete. key=%s\n", key)
 }
 
 func update(key string, value string) int {
@@ -86,9 +87,9 @@ func update(key string, value string) int {
 	}
 	mutex.Unlock()
 	if result == 0 {
-		fmt.Printf("[DEBUG] update. key=%s, value=%s\n", key, item.value)
+		log.Printf("[DEBUG] update. key=%s, value=%s\n", key, item.value)
 	} else {
-		fmt.Printf("[DEBUG] update. key=%s\n", key)
+		log.Printf("[DEBUG] update. key=%s\n", key)
 	}
 	return result
 }
@@ -96,5 +97,10 @@ func update(key string, value string) int {
 func initializeStore() {
 	initializeAssoc(uint32(128), SAMPLE)
 
-	fmt.Printf("initialize storage module.\n")
+	log.Printf("initialize storage module.\n")
+}
+
+func destroyStore() {
+	destroyAssoc()
+	log.Printf("destory storage module.\n")
 }
