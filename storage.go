@@ -97,10 +97,10 @@ func update(key string, value string) int {
 func initializeStore() {
 	initializeAssoc(uint32(128), SAMPLE)
 
-	log.Printf("initialize storage module.\n")
+	log.Printf("Initialize storage module.\n")
 }
 
 func destroyStore() {
 	destroyAssoc()
-	log.Printf("destory storage module.\n")
+	log.Printf("Destory storage module.\n")
 }

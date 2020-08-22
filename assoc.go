@@ -176,7 +176,7 @@ func initializeAssoc(hashtableSize uint32, hashFunction int) {
 	assoc.hashtable = make([]*Item, assoc.hashtableSize)
 	assoc.hashFunction = hashFunction
 
-	log.Printf("initialize assoc module.[size=%d]\n", assoc.hashtableSize)
+	log.Printf("Initialize assoc module.[size=%d]\n", assoc.hashtableSize)
 }
 
 func allItemReleaseInBucket(startBucket uint32, endBucket uint32) {
@@ -199,5 +199,5 @@ func destroyAssoc() {
 		allItemReleaseInBucket(0, assoc.hashtableSize)
 	}
 
-	log.Printf("destroy assoc module.\n")
+	log.Printf("Destroy assoc module.\n")
 }
