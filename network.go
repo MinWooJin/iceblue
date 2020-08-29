@@ -27,6 +27,7 @@ func sendNetworkRequest(conn net.Conn, buffer []byte, size int) int {
  * <command> <key> [<valueLength>]\r\n[<value>\r\n]
  */
 func processNetworkRequest(conn net.Conn) {
+	var position int = -1
 	addr := conn.RemoteAddr().String()
 	log.Printf("Read network request. Conn = %s\n", addr)
 
@@ -39,7 +40,10 @@ func processNetworkRequest(conn net.Conn) {
 		}
 		if length > 0 {
 			data := string(buffer[:length])
-			position := strings.Index(data, "\\r\\n")
+			/* check protocol.. CRLF(\r\n) or LF(\n) */
+			if position = strings.Index(data, "\\r\\n"); position < 0 {
+				position = strings.Index(data, "\\n")
+			}
 
 			if position < 0 {
 				/* TODO :: change error write after define error code */
