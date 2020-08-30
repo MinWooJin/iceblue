@@ -12,12 +12,16 @@ type network struct {
 
 var networkInfo network
 
-func sendNetworkRequest(conn net.Conn, buffer []byte, size int) int {
-	length, err := conn.Write(buffer)
-	if err != nil {
-		return -1
-	}
-	if length != size {
+func sendNetworkRequest(conn net.Conn, data string) int {
+	addr := conn.RemoteAddr().String()
+	/* DEBUG log level */
+	log.Printf("Send network request. Conn = %s\n", addr)
+
+	byteData := []byte(data)
+	byteLength := len(byteData)
+	length, err := conn.Write(byteData)
+	if err != nil || length != byteLength {
+		log.Printf("Send network request failed. Conn = %s\n", addr)
 		return -1
 	}
 	return 0
@@ -29,6 +33,7 @@ func sendNetworkRequest(conn net.Conn, buffer []byte, size int) int {
 func processNetworkRequest(conn net.Conn) {
 	var position int = -1
 	addr := conn.RemoteAddr().String()
+	/* DEBUG log leven */
 	log.Printf("Read network request. Conn = %s\n", addr)
 
 	buffer := make([]byte, 4096)
@@ -47,15 +52,12 @@ func processNetworkRequest(conn net.Conn) {
 
 			if position < 0 {
 				/* TODO :: change error write after define error code */
-				response := "INVALID command foramt"
-				_, err = conn.Write([]byte(response))
-				if err != nil {
-					log.Printf("Network Write failure.\n")
+				if sendNetworkRequest(conn, "INVALID command format") < 0 {
 					goto close
 				}
 			} else {
 				/* process command */
-				ret := processCommand(data, position)
+				ret := processCommand(conn, data, position)
 				if ret < 0 {
 					log.Printf("Failure process command.\n")
 					goto close
@@ -68,6 +70,7 @@ func processNetworkRequest(conn net.Conn) {
 	}
 
 close:
+	/* DEBUG log level */
 	log.Printf("Close connection. Client Addr = %s\n", addr)
 	conn.Close()
 }
