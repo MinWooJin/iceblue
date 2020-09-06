@@ -27,11 +27,22 @@ func sendNetworkRequest(conn net.Conn, data string) int {
 	return 0
 }
 
+func readNetworkRequest(conn net.Conn, length int) []byte {
+	buffer := make([]byte, length+4 /* +4 is CRLF length*/)
+
+	/* TODO :: read from network for length */
+	buffer[0] = 't'
+	buffer[1] = 'e'
+
+	return buffer
+}
+
 /* Request format:
  * <command> <key> [<valueLength>]\r\n[<value>\r\n]
  */
 func processNetworkRequest(conn net.Conn) {
 	var position int = -1
+	var endPosition int = -1
 	addr := conn.RemoteAddr().String()
 	/* DEBUG log leven */
 	log.Printf("Read network request. Conn = %s\n", addr)
@@ -46,8 +57,12 @@ func processNetworkRequest(conn net.Conn) {
 		if length > 0 {
 			data := string(buffer[:length])
 			/* check protocol.. CRLF(\r\n) or LF(\n) */
-			if position = strings.Index(data, "\\r\\n"); position < 0 {
+			position = strings.Index(data, "\\r\\n")
+			if position < 0 {
 				position = strings.Index(data, "\\n")
+				endPosition = position + 2
+			} else {
+				endPosition = position + 4
 			}
 
 			if position < 0 {
@@ -57,7 +72,7 @@ func processNetworkRequest(conn net.Conn) {
 				}
 			} else {
 				/* process command */
-				ret := processCommand(conn, data, position)
+				ret := processCommand(conn, data, position, endPosition)
 				if ret < 0 {
 					log.Printf("Failure process command.\n")
 					goto close

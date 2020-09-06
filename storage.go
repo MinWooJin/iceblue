@@ -23,6 +23,7 @@ type Item struct {
 	next   *Item
 }
 
+/* TODO :: add value length argument for optimize */
 func store(key string, value string) int {
 	mutex.Lock()
 	hashVal := hash(key)
