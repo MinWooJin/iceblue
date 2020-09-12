@@ -29,15 +29,25 @@ func sendNetworkRequest(conn net.Conn, data string) int {
 
 func readNetworkRequest(conn net.Conn, length int) ([]byte, int) {
 	buffer := make([]byte, length+4 /* +4 is CRLF length*/)
+	readBuffer := make([]byte, length+4)
+	remainLength := length
 
-	readLength, err := conn.Read(buffer)
-	if err != nil {
-		log.Printf("Network Read next line failure.\n")
-		return nil, -1
-	}
-	if readLength != length {
-		log.Printf("Network Read next line failure.\n")
-		return nil, -1
+	for {
+		readLength, err := conn.Read(readBuffer)
+		if err != nil {
+			log.Printf("Network Read next line failure.\n")
+			return nil, -1
+		}
+		buffer = append(buffer, readBuffer[:readLength]...)
+		remainLength -= readLength
+		if remainLength < 0 {
+			log.Printf("Network Read next line failure.\n")
+			return nil, -1
+		} else if remainLength == 0 {
+			break
+		}
+		/* reset readBuffer slice */
+		readBuffer = readBuffer[:0]
 	}
 
 	return buffer, 0
