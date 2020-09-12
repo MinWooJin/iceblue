@@ -39,8 +39,12 @@ func tryReadNextline(conn net.Conn, data string, position int, vlen int) (string
 	remainDataLength := len(remainData)
 	if remainDataLength <= vlen {
 		var buffer bytes.Buffer
+		var additionalData []byte
 		buffer.WriteString(remainData)
-		additionalData := readNetworkRequest(conn, vlen-remainDataLength)
+		additionalData, ret = readNetworkRequest(conn, vlen-remainDataLength)
+		if ret < 0 {
+			return nextline, ret
+		}
 		buffer.Write(additionalData)
 		remainData = buffer.String()
 	}
