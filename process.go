@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -69,8 +70,8 @@ func processCommand(conn net.Conn, data string, position int, endPosition int) i
 		/* Input foramt : set {key} {vlen}\r\n{value}\r\n */
 		/* TODO :: check if limits are needed of key, value length */
 		for {
-			key := tokens[operationToken+1]
-			vlen, err := strconv.Atoi(tokens[operationToken+2])
+			key := tokens[keyToken]
+			vlen, err := strconv.Atoi(tokens[keyToken+1])
 			if err != nil {
 				if sendNetworkRequest(conn, "CLIENT_ERROR bad line format") < 0 {
 					return -1
@@ -107,6 +108,22 @@ func processCommand(conn net.Conn, data string, position int, endPosition int) i
 		}
 	} else if tokens[operationToken] == "get" {
 		for {
+			var buffer bytes.Buffer
+			key := tokens[keyToken]
+			value, ret := get(key)
+			if ret == 0 {
+				/* separate header and body to support multiple keys */
+				headerStr := fmt.Sprintf("VALUE %d\r\n", len(value))
+				bodyStr := fmt.Sprintf("%s\r\n", value)
+				buffer.WriteString(headerStr)
+				buffer.WriteString(bodyStr)
+			} else {
+				/* TODO :: error hanlding according to error code */
+			}
+			buffer.WriteString("END\r\n")
+			if sendNetworkRequest(conn, buffer.String()) < 0 {
+				return -1
+			}
 			break
 		}
 	} else if tokens[operationToken] == "stats" {
