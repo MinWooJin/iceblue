@@ -1,2 +1,2 @@
 # iceblue
-Go language-enabled in-memory data stores
+Simple key-value in-memory data store in golang
