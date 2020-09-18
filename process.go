@@ -102,8 +102,13 @@ func processCommand(conn net.Conn, data string, position int, endPosition int) i
 		for {
 			break
 		}
-	} else if tokens[operationToken] == "delete" {
+	} else if tokens[operationToken] == "delete" && tokenCount == 2 {
 		for {
+			key := tokens[keyToken]
+			delete(key)
+			if sendNetworkRequest(conn, "DELETED") < 0 {
+				return -1
+			}
 			break
 		}
 	} else if tokens[operationToken] == "get" && tokenCount == 2 {
