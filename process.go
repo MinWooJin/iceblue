@@ -106,7 +106,7 @@ func processCommand(conn net.Conn, data string, position int, endPosition int) i
 		for {
 			break
 		}
-	} else if tokens[operationToken] == "get" {
+	} else if tokens[operationToken] == "get" && tokenCount == 2 {
 		for {
 			var buffer bytes.Buffer
 			key := tokens[keyToken]
