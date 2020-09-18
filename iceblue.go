@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 )
 
 /* TODO :: connection control module */
@@ -44,7 +45,12 @@ func main() {
 		log.Panic("Fail initialize network module")
 	}
 
-	acceptNetworkProcess()
+	var waitGroups sync.WaitGroup
+	waitGroups.Add(1)
+
+	go acceptNetworkProcess(&waitGroups)
+
+	waitGroups.Wait()
 
 	destroyNetworkModule()
 	destroyProcessRoutine()

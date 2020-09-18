@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"sync"
 )
 
 type network struct {
@@ -106,8 +107,10 @@ close:
 	conn.Close()
 }
 
-func acceptNetworkProcess() {
+func acceptNetworkProcess(waitGroups *sync.WaitGroup) {
 	log.Printf("Start accept network process\n")
+	defer waitGroups.Done()
+
 	for networkInfo.listener != nil {
 		conn, err := networkInfo.listener.Accept()
 		if err != nil {
