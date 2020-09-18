@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 )
 
 /* TODO :: connection control module */
@@ -33,6 +36,12 @@ func initializeInfo() {
 	iceblueInfo.port = defaultPort
 }
 
+func handleSignal(signalChannel chan os.Signal, doneChannel chan bool) {
+	signal := <-signalChannel
+	log.Printf("Receive signal. %v", signal)
+	doneChannel <- true
+}
+
 func main() {
 	log.Printf("Start IceBlue Simple Key-value in memory storage.\n")
 
@@ -45,10 +54,16 @@ func main() {
 		log.Panic("Fail initialize network module")
 	}
 
+	signalChannel := make(chan os.Signal, 1)
+	quit := make(chan bool, 1)
+
 	var waitGroups sync.WaitGroup
 	waitGroups.Add(1)
 
-	go acceptNetworkProcess(&waitGroups)
+	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+
+	go handleSignal(signalChannel, quit)
+	go acceptNetworkProcess(&waitGroups, quit)
 
 	waitGroups.Wait()
 

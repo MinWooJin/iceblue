@@ -107,16 +107,22 @@ close:
 	conn.Close()
 }
 
-func acceptNetworkProcess(waitGroups *sync.WaitGroup) {
+func acceptNetworkProcess(waitGroups *sync.WaitGroup, doneChannel chan bool) {
 	log.Printf("Start accept network process\n")
 	defer waitGroups.Done()
 
 	for networkInfo.listener != nil {
-		conn, err := networkInfo.listener.Accept()
-		if err != nil {
-			log.Panic(err)
+		/* TODO :: prepare more complete shutdown logic */
+		select {
+		case <-doneChannel:
+			break
+		default:
+			conn, err := networkInfo.listener.Accept()
+			if err != nil {
+				log.Panic(err)
+			}
+			go processNetworkRequest(conn)
 		}
-		go processNetworkRequest(conn)
 	}
 	log.Printf("Stop accept network process\n")
 }
