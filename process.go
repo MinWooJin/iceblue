@@ -13,6 +13,16 @@ const maxTokenCount int = 10
 const operationToken int = 0
 const keyToken int = 1
 
+// Operation Code
+const (
+	SET = iota
+	UPDATE
+	DELETE
+	GET
+	STATS
+	UNKNOWN = -1
+)
+
 func tokenizeCommand(data string, position int) (int, [maxTokenCount]string) {
 	var tokenCount int = 0
 	var tokens [maxTokenCount]string
@@ -63,14 +73,41 @@ func tryReadNextline(conn net.Conn, data string, position int, vlen int) (string
 	return nextline, ret
 }
 
-func getOperationCode(operationToken string) int {
-	return 0
+func getOperationCode(operationToken string, tokenCount int) int {
+	if operationToken == "set" && tokenCount == 3 {
+		return SET
+	} else if operationToken == "update" && tokenCount == 3 {
+		return UPDATE
+	} else if operationToken == "delete" && tokenCount == 2 {
+		return DELETE
+	} else if operationToken == "get" && tokenCount == 2 {
+		return GET
+	} else if operationToken == "stats" && tokenCount == 2 {
+		return STATS
+	} else {
+		return UNKNOWN
+	}
 }
 
 func processCommand(conn net.Conn, data string, position int, endPosition int) int {
 	tokenCount, tokens := tokenizeCommand(data, position)
 
 	/* TODO :: define operation code using operationToken and refactoring to switch case */
+	/*
+		operationCode := getOperationCode(tokens[operationToken], tokenCount)
+		switch operationCode {
+		case SET, UPDATE:
+			return processStoreCommand()
+		case DELETE:
+			return processDeleteCommand()
+		case GET:
+			return processGetCommand()
+		case STATS:
+			return processStatsCommand()
+		case UNKNOWN:
+			return processUnknownCommand()
+		}
+	*/
 
 	if (tokens[operationToken] == "set" || tokens[operationToken] == "update") && tokenCount == 3 {
 		/* Input foramt : set {key} {vlen}\r\n{value}\r\n */
