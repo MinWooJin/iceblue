@@ -63,10 +63,16 @@ func tryReadNextline(conn net.Conn, data string, position int, vlen int) (string
 	return nextline, ret
 }
 
+func getOperationCode(operationToken string) int {
+	return 0
+}
+
 func processCommand(conn net.Conn, data string, position int, endPosition int) int {
 	tokenCount, tokens := tokenizeCommand(data, position)
 
-	if tokens[operationToken] == "set" && tokenCount == 3 {
+	/* TODO :: define operation code using operationToken and refactoring to switch case */
+
+	if (tokens[operationToken] == "set" || tokens[operationToken] == "update") && tokenCount == 3 {
 		/* Input foramt : set {key} {vlen}\r\n{value}\r\n */
 		/* TODO :: check if limits are needed of key, value length */
 		for {
@@ -85,21 +91,22 @@ func processCommand(conn net.Conn, data string, position int, endPosition int) i
 				}
 				break
 			}
-			ret = store(key, value)
+			/* TODO :: define operation code and use that */
+			if tokens[operationToken] == "set" {
+				ret = store(key, value)
+			} else {
+				ret = update(key, value)
+			}
 			if ret == 0 {
 				if sendNetworkRequest(conn, "SUCCESS") < 0 {
 					return -1
 				}
 			} else {
 				/* TODO :: error hanlding according to error code */
-				if sendNetworkRequest(conn, "SERVER_ERROR set failed") < 0 {
+				if sendNetworkRequest(conn, "SERVER_ERROR store failed") < 0 {
 					return -1
 				}
 			}
-			break
-		}
-	} else if tokens[operationToken] == "update" {
-		for {
 			break
 		}
 	} else if tokens[operationToken] == "delete" && tokenCount == 2 {
