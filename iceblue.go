@@ -9,12 +9,6 @@ import (
 	"syscall"
 )
 
-/* TODO :: connection control module */
-/* TODO :: worker and worker control module (maybe use goroutine) */
-/* TODO :: network IO module */
-/* TODO :: request parsing module */
-/* TODO :: processing module */
-
 var defaultRoutineCount = 6
 var defaultPort = "11508"
 
