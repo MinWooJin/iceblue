@@ -1,12 +1,14 @@
 package main
 
 import (
+	"hash/fnv"
 	"log"
 )
 
 // HASH functions
 const (
-	SAMPLE = iota
+	FNV32 = iota
+	FNV32A
 )
 
 type assocST struct {
@@ -24,14 +26,24 @@ var assoc assocST
 
 func hash(str string) uint32 {
 	var hvalue uint32
-	strlength := uint32(len(str))
 	hashFunction := assoc.hashFunction
-	/* TODO :: make hash function */
 	switch hashFunction {
-	case SAMPLE:
-		hvalue = strlength
-		break
+	case FNV32:
+		/* New32 returns a new 32-bit FNV-1 hash.Hash.
+		 * Its Sum method will lay the value out in big-endian byte order.
+		 */
+		algorithm := fnv.New32()
+		algorithm.Write([]byte(str))
+		hvalue = algorithm.Sum32()
+	case FNV32A:
+		/* New32a returns a new 32-bit FNV-1a hash.Hash.
+		 * Its Sum method will lay the value out in big-endian byte order.
+		 */
+		algorithm := fnv.New32a()
+		algorithm.Write([]byte(str))
+		hvalue = algorithm.Sum32()
 	}
+	/* TODO :: support more hash function */
 	return hvalue
 }
 

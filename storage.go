@@ -96,7 +96,7 @@ func update(key string, value string) int {
 }
 
 func initializeStore() {
-	initializeAssoc(uint32(128), SAMPLE)
+	initializeAssoc(uint32(128), FNV32)
 
 	log.Printf("Initialize storage module.\n")
 }
