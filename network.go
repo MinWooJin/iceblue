@@ -91,7 +91,10 @@ func processNetworkRequest(conn net.Conn) {
 				/* process command */
 				ret := processCommand(conn, data, position, endPosition)
 				if ret < 0 {
-					log.Printf("Failure process command.\n")
+					if ret != -2 {
+						/* -2 is special return code. quit connection code */
+						log.Printf("Failure process command.\n")
+					}
 					goto close
 				}
 			}

@@ -85,6 +85,8 @@ func getOperationCode(operationToken string, tokenCount int) int {
 		return GET
 	} else if operationToken == "stats" && tokenCount == 1 {
 		return STATS
+	} else if operationToken == "quit" && tokenCount == 1 {
+		return QUIT
 	} else {
 		return UNKNOWN
 	}
@@ -186,6 +188,13 @@ func processUnknownCommand(conn net.Conn, operation string) int {
 	return 0
 }
 
+func processQuitCommand(conn net.Conn) int {
+	if sendNetworkRequest(conn, "Quit this connection") < 0 {
+		return -1
+	}
+	return -2
+}
+
 func processCommand(conn net.Conn, data string, position int, endPosition int) int {
 	tokenCount, tokens := tokenizeCommand(data, position)
 
@@ -201,6 +210,8 @@ func processCommand(conn net.Conn, data string, position int, endPosition int) i
 		return processGetCommand(conn, tokens[keyToken])
 	case STATS:
 		return processStatsCommand(conn)
+	case QUIT:
+		return processQuitCommand(conn)
 	case UNKNOWN:
 		return processUnknownCommand(conn, tokens[operationToken])
 	}
