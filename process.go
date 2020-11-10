@@ -218,7 +218,7 @@ func processCommand(conn net.Conn, data string, position int, endPosition int) i
 	return 0
 }
 
-func initializeProcessRoutine(routineCount int) {
+func initializeProcessRoutine() {
 	log.Printf("Initialize process routine\n")
 }
 

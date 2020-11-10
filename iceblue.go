@@ -9,24 +9,20 @@ import (
 	"syscall"
 )
 
-var defaultRoutineCount = 6
 var defaultPort = "11508"
 
 var iceblueInfo info
 
 type info struct {
-	routineCount int
-	port         string
+	port string
 }
 
 func stats() {
 	/* FIXME change the way of print stats to operation response */
-	fmt.Printf("routineCount = %d\n", iceblueInfo.routineCount)
 	fmt.Printf("port = %s\n", iceblueInfo.port)
 }
 
 func initializeInfo() {
-	iceblueInfo.routineCount = defaultRoutineCount
 	iceblueInfo.port = defaultPort
 }
 
@@ -42,7 +38,7 @@ func main() {
 	initializeInfo()
 	initializeStore()
 
-	initializeProcessRoutine(iceblueInfo.routineCount)
+	initializeProcessRoutine()
 	success := initializeNetworkModule(iceblueInfo.port)
 	if !success {
 		log.Panic("Fail initialize network module")
