@@ -74,6 +74,7 @@ func processNetworkRequest(conn net.Conn) {
 		if length > 0 {
 			data := string(buffer[:length])
 			/* check protocol.. CRLF(\r\n) or LF(\n) */
+			/* FIXME: change validation check with tokenizer. do not check CRLF */
 			position = strings.Index(data, "\\r\\n")
 			if position < 0 {
 				position = strings.Index(data, "\\n")
