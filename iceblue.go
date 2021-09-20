@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"iceblue/pkg/process"
+	"iceblue/pkg/storage"
 	"log"
 	"os"
 	"os/signal"
@@ -36,10 +38,10 @@ func main() {
 	log.Printf("Start IceBlue Simple Key-value in memory storage.\n")
 
 	initializeInfo()
-	initializeStore()
+	storage.InitializeStore()
 
-	initializeProcessRoutine()
-	success := initializeNetworkModule(iceblueInfo.port)
+	process.InitializeProcessRoutine()
+	success := process.InitializeNetworkModule(iceblueInfo.port)
 	if !success {
 		log.Panic("Fail initialize network module")
 	}
@@ -53,11 +55,11 @@ func main() {
 	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
 	go handleSignal(signalChannel, quit)
-	go acceptNetworkProcess(&waitGroups, quit)
+	go process.AcceptNetworkProcess(&waitGroups, quit)
 
 	waitGroups.Wait()
 
-	destroyNetworkModule()
-	destroyProcessRoutine()
-	destroyStore()
+	process.DestroyNetworkModule()
+	process.DestroyProcessRoutine()
+	storage.DestroyStore()
 }
