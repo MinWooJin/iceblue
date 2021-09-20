@@ -5,7 +5,6 @@
 *.so
 *.dylib
 go.mod
-pkg/*
 /iceblue
 .idea
 
